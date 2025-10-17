@@ -3,27 +3,31 @@ from ..models.frontier import PriorityQueueFrontier
 from ..models.solution import NoSolution, Solution
 from ..models.node import Node
 
-
 class UniformCostSearch:
     @staticmethod
-    def search(grid: Grid) -> Solution:
-        """Find path between two points in a grid using Uniform Cost Search
+    def search(problem):
+        start = problem.initial
+        frontier = PriorityQueueFrontier()
+        start_node = Node(value="", state=start, cost=0, parent=None, action=None)
+        frontier.add(start_node, 0)
 
-        Args:
-            grid (Grid): Grid of points
+        reached = {start: start_node}
 
-        Returns:
-            Solution: Solution found
-        """
-        # Initialize root node
-        root = Node("", state=grid.initial, cost=0, parent=None, action=None)
+        while not frontier.is_empty():
+            node = frontier.pop()
 
-        # Initialize reached with the initial state
-        reached = {}
-        reached[root.state] = root.cost
+            # Si llegamos al objetivo
+            if problem.objective_test(node.state):
+                return Solution(node, reached)
 
-        # Initialize frontier with the root node
-        # TODO Complete the rest!!
-        # ...
+            # Expandir sucesores
+            for action in problem.actions(node.state):
+                child_state = problem.result(node.state, action)
+                child_cost = node.cost + problem.individual_cost(node.state, action)
+                child_node = Node(value="", state=child_state, cost=child_cost, parent=node, action=action)
 
-        return NoSolution(reached)
+                if (child_state not in reached) or (child_cost < reached[child_state].cost):
+                    reached[child_state] = child_node
+                    frontier.add(child_node, child_node.cost)
+
+        return NoSolution()
